@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#101126">
+<title>SUNU VIDEO AI 🇸🇳</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root {
+  color-scheme: dark;
+  --bg:#0b1020;
+  --panel:#151c31;
+  --line:#303c5c;
+  --gold:#ffc928;
+  --text:#fff;
+  --muted:#aab4cc;
+  --green:#31d69a;
+  --red:#ff6978;
+}
+*{box-sizing:border-box}
+body{
+ margin:0;
+ background:radial-gradient(circle at top,#252b50,#0b1020 60%);
+ color:var(--text);
+ font:16px system-ui,Arial,sans-serif;
+}
+.wrap{max-width:850px;margin:auto;padding:18px 14px 45px}
+.hero{text-align:center;padding:25px 5px}
+.logo{font-size:clamp(34px,8vw,52px);font-weight:900;letter-spacing:-2px}
+.logo span{color:var(--gold)}
+.tag{color:var(--muted);margin-top:7px}
+.panel{
+ background:var(--panel);
+ border:1px solid var(--line);
+ border-radius:17px;
+ padding:18px;
+ margin:15px 0;
+ box-shadow:0 10px 30px #0003;
+}
+h2{font-size:21px;margin:0 0 15px}
+label{display:block;margin:13px 0 7px;font-weight:700}
+input,textarea,select{
+ width:100%;
+ padding:14px;
+ border-radius:11px;
+ border:1px solid #3a4668;
+ background:#0e1528;
+ color:white;
+ font:inherit;
+}
+textarea{min-height:125px;resize:vertical}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btn{
+ width:100%;
+ padding:14px;
+ margin-top:12px;
+ border:0;
+ border-radius:11px;
+ background:var(--gold);
+ color:#171717;
+ font-size:16px;
+ font-weight:800;
+ cursor:pointer;
+}
+.btn.secondary{background:#293451;color:white;border:1px solid #435174}
+.btn.test{background:#175b50;color:white}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.status{
+ padding:13px;
+ border-radius:10px;
+ margin-top:12px;
+ background:#0d1426;
+ border:1px solid var(--line);
+ white-space:pre-wrap;
+ overflow-wrap:anywhere;
+}
+.good{color:var(--green)}
+.bad{color:var(--red)}
+.small{font-size:13px;color:var(--muted);line-height:1.6}
+.hidden{display:none!important}
+video{
+ width:100%;
+ max-height:440px;
+ background:#000;
+ border-radius:12px;
+ margin-top:12px;
+}
+.job{border-top:1px solid var(--line);padding:15px 0;overflow-wrap:anywhere}
+.job a{color:var(--gold)}
+.job:first-child{border-top:0}
+@media(max-width:550px){
+ .grid{grid-template-columns:1fr}
+ .panel{padding:15px}
+}
+</style>
+</head>
+
+<body>
+<div class="wrap">
+
+<header class="hero">
+ <div class="logo">SUNU <span>VIDEO AI</span> 🇸🇳</div>
+ <div class="tag">Transforme tes idées en vidéos avec l'intelligence artificielle.</div>
+</header>
+
+<section class="panel">
+ <h2>🔐 Mon compte</h2>
+
+ <label for="email">Adresse e-mail</label>
+ <input id="email" type="email" autocomplete="email" placeholder="Ton adresse e-mail">
+
+ <label for="password">Mot de passe</label>
+ <input id="password" type="password" autocomplete="current-password" placeholder="6 caractères minimum">
+
+ <div class="grid">
+  <button class="btn" id="loginBtn">Se connecter</button>
+  <button class="btn secondary" id="signupBtn">Créer un compte</button>
+ </div>
+
+ <button class="btn secondary hidden" id="logoutBtn">Se déconnecter</button>
+
+ <div class="status" id="authStatus">Vérification de la connexion...</div>
+</section>
+
+<section class="panel">
+ <h2>🎬 Créer une vidéo</h2>
+
+ <label for="prompt">Décris la vidéo que tu veux créer</label>
+ <textarea id="prompt" maxlength="1500"
+ placeholder="Exemple : Un mouton sénégalais qui marche dans les rues de Dakar, glisse sur une peau de banane et se relève en dansant, ambiance très drôle, vidéo réaliste et cinématographique."></textarea>
+
+ <div class="grid">
+  <div>
+   <label for="duration">Durée</label>
+   <select id="duration">
+    <option value="5">5 secondes</option>
+    <option value="10">10 secondes</option>
+   </select>
+  </div>
+
+  <div>
+   <label for="ratio">Format</label>
+   <select id="ratio">
+    <option value="16:9">Paysage 16:9</option>
+    <option value="9:16">Portrait 9:16</option>
+    <option value="1:1">Carré 1:1</option>
+   </select>
+  </div>
+ </div>
+
+ <p class="small">
+  Moteur : Wan 2.7 via Puter.<br>
+  Pour l'instant, Puter choisit lui-même la durée et le format.<br>
+  La génération réelle peut utiliser les crédits AI de ton compte Puter.
+ </p>
+
+ <button class="btn test" id="testBtn" disabled>🧪 Tester sans crédits</button>
+ <button class="btn" id="generateBtn" disabled>🎥 Générer ma vidéo</button>
+
+ <div class="status" id="generationStatus">Connecte-toi pour commencer.</div>
+
+ <div id="preview"></div>
+</section>
+
+<section class="panel">
+ <h2>🗂️ Mon historique</h2>
+
+ <button class="btn secondary" id="refreshBtn" disabled>Actualiser l'historique</button>
+
+ <div id="history" class="small">Connecte-toi pour voir tes créations.</div>
+</section>
+
+<footer class="hero small">
+ SUNU VIDEO AI 🇸🇳<br>
+ Créé avec passion au Sénégal.
+</footer>
+
+</div>
+
+<script>
+(() => {
+"use strict";
+
+const SUPABASE_URL="https://pbiyxftclqyksjmntbst.supabase.co";
+const SUPABASE_ANON_KEY="sb_publishable_Yfm8zejaH6rx6rkSg0OfFA_Hh7e3Pwz";
+const TABLE="video_jobs";
+const MODEL="wan-ai/wan2.7-t2v";
+const TIMEOUT_MS=10*60*1000;
+
+const $=id=>document.getElementById(id);
+
+let sb=null;
+let currentUser=null;
+let generating=false;
+let puterPromise=null;
+
+function setStatus(id,message,type=""){
+ const el=$(id);
+ el.textContent=message;
+ el.className="status "+type;
+}
+
+function escapeHTML(value){
+ return String(value ?? "").replace(/[&<>"']/g,c=>({
+  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+ }[c]));
+}
+
+function errorText(e){
+ if(!e) return "Erreur inconnue";
+ if(typeof e==="string") return e;
+ return e.message||e.error?.message||e.error||JSON.stringify(e);
+}
+
+function setButtons(){
+ const connected=!!currentUser;
+ $("loginBtn").disabled=generating;
+ $("signupBtn").disabled=generating;
+ $("logoutBtn").classList.toggle("hidden",!connected);
+ $("generateBtn").disabled=!connected||generating;
+ $("testBtn").disabled=!connected||generating;
+ $("refreshBtn").disabled=!connected;
+}
+
+function setGenerating(value){
+ generating=value;
+ setButtons();
+}
+
+/* CHARGEMENT DE PUTER */
+
+function loadPuter(){
+ if(window.puter?.ai?.txt2vid){
+  return Promise.resolve(window.puter);
+ }
+ if(puterPromise) return puterPromise;
+
+ puterPromise=new Promise((resolve,reject)=>{
+  let script=document.querySelector('script[data-sunu-puter="true"]');
+
+  if(!script){
+   script=document.createElement("script");
+   script.src="https://js.puter.com/v2/";
+   script.async=true;
+   script.dataset.sunuPuter="true";
+   document.head.appendChild(script);
+  }
+
+  const timer=setTimeout(()=>{
+   puterPromise=null;
+   reject(new Error("Puter met trop de temps à charger. Vérifie Internet et recharge la page."));
+  },30000);
+
+  script.addEventListener("load",()=>{
+   clearTimeout(timer);
+   if(window.puter?.ai?.txt2vid){
+    resolve(window.puter);
+   }else{
+    puterPromise=null;
+    reject(new Error("Puter est chargé, mais son API vidéo est indisponible."));
+   }
+  },{once:true});
+
+  script.addEventListener("error",()=>{
+   clearTimeout(timer);
+   puterPromise=null;
+   reject(new Error("Impossible de télécharger Puter.js. Vérifie Internet."));
+  },{once:true});
+
+  if(window.puter?.ai?.txt2vid){
+   clearTimeout(timer);
+   resolve(window.puter);
+  }
+ });
+
+ return puterPromise;
+}
+
+/* SESSION SUPABASE */
+
+async function showSession(){
+ const {data,error}=await sb.auth.getSession();
+ if(error) throw error;
+
+ currentUser=data.session?.user||null;
+ setButtons();
+
+ if(currentUser){
+  setStatus("authStatus","Connecté : "+currentUser.email,"good");
+  setStatus("generationStatus","Tu es connecté. Décris ta vidéo pour commencer.");
+  await loadHistory();
+ }else{
+  setStatus("authStatus","Tu n'es pas connecté.");
+  setStatus("generationStatus","Connecte-toi pour commencer.");
+  $("history").textContent="Connecte-toi pour voir tes créations.";
+ }
+}
+
+/* CONNEXION */
+
+$("loginBtn").addEventListener("click",async()=>{
+ const email=$("email").value.trim();
+ const password=$("password").value;
+
+ if(!email||!password){
+  return setStatus("authStatus","Entre ton e-mail et ton mot de passe.","bad");
+ }
+
+ $("loginBtn").disabled=true;
+
+ try{
+  const {error}=await sb.auth.signInWithPassword({email,password});
+  if(error) throw error;
+  await showSession();
+ }catch(e){
+  setStatus("authStatus","Connexion impossible : "+e.message,"bad");
+ }finally{
+  setButtons();
+ }
+});
+
+/* INSCRIPTION */
+
+$("signupBtn").addEventListener("click",async()=>{
+ const email=$("email").value.trim();
+ const password=$("password").value;
+
+ if(!email||password.length<6){
+  return setStatus("authStatus","Entre un e-mail valide et un mot de passe d'au moins 6 caractères.","bad");
+ }
+
+ $("signupBtn").disabled=true;
+
+ try{
+  const {data,error}=await sb.auth.signUp({email,password});
+  if(error) throw error;
+
+  if(data.session){
+   setStatus("authStatus","Compte créé et connecté !","good");
+  }else{
+   setStatus("authStatus","Compte créé. Vérifie tes e-mails pour confirmer ton adresse, puis connecte-toi.","good");
+  }
+
+  await showSession();
+ }catch(e){
+  setStatus("authStatus","Inscription impossible : "+e.message,"bad");
+ }finally{
+  setButtons();
+ }
+});
+
+/* DECONNEXION */
+
+$("logoutBtn").addEventListener("click",async()=>{
+ try{
+  const {error}=await sb.auth.signOut();
+  if(error) throw error;
+  currentUser=null;
+  await showSession();
+ }catch(e){
+  setStatus("authStatus",e.message,"bad");
+ }
+});
+
+/* ENREGISTREMENT SUPABASE */
+
+async function insertJob(values){
+ const {data,error}=await sb
+  .from(TABLE)
+  .insert({user_id:currentUser.id,...values})
+  .select()
+  .single();
+
+ if(error){
+  throw new Error("Enregistrement impossible : "+error.message);
+ }
+ return data;
+}
+
+async function updateJob(id,values){
+ const {error}=await sb
+  .from(TABLE)
+  .update(values)
+  .eq("id",id)
+  .eq("user_id",currentUser.id);
+
+ if(error){
+  throw new Error("Mise à jour impossible : "+error.message);
+ }
+}
+
+/* HISTORIQUE */
+
+async function loadHistory(){
+ if(!currentUser) return;
+
+ $("history").textContent="Chargement de ton historique...";
+
+ const {data,error}=await sb
+  .from(TABLE)
+  .select("id,prompt,status,video_url,error_message,created_at,duration,ratio")
+  .eq("user_id",currentUser.id)
+  .order("created_at",{ascending:false})
+  .limit(30);
+
+ if(error){
+  $("history").textContent="Erreur historique : "+error.message;
+  return;
+ }
+
+ if(!data?.length){
+  $("history").textContent="Aucune vidéo enregistrée pour le moment.";
+  return;
+ }
+
+ $("history").innerHTML=data.map(job=>{
+  const safeUrl=job.video_url&&/^(https?:\/\/|data:video\/)/i.test(job.video_url)
+   ?job.video_url:"";
+
+  const video=safeUrl
+   ?`<video controls playsinline preload="metadata" src="${escapeHTML(safeUrl)}"></video>`
+   :"";
+
+  const link=safeUrl
+   ?`<p><a href="${escapeHTML(safeUrl)}" target="_blank" rel="noopener">Ouvrir / télécharger la vidéo</a></p>`
+   :"";
+
+  const date=job.created_at?new Date(job.created_at).toLocaleString("fr-FR"):"";
+
+  const ageMin=job.created_at?(Date.now()-new Date(job.created_at).getTime())/60000:0;
+
+  const state=job.status==="completed"?"Terminée"
+   :job.status==="failed"?"Échec"
+   :job.status==="running"?(ageMin>15?"Interrompue":"En cours")
+   :job.status||"Inconnu";
+
+  return `
+   <article class="job">
+    <strong>${escapeHTML(job.prompt)}</strong>
+    <p class="small">
+     Statut : ${escapeHTML(state)}<br>
+     Durée : ${escapeHTML(job.duration)} secondes<br>
+     Date : ${escapeHTML(date)}
+    </p>
+    ${job.error_message?`<p class="bad">${escapeHTML(job.error_message)}</p>`:""}
+    ${video}
+    ${link}
+   </article>
+  `;
+ }).join("");
+}
+
+/* AFFICHAGE VIDEO */
+
+function showPreview(url){
+ $("preview").innerHTML="";
+
+ const video=document.createElement("video");
+ video.controls=true;
+ video.playsInline=true;
+ video.preload="metadata";
+ video.src=url;
+
+ const link=document.createElement("a");
+ link.href=url;
+ link.target="_blank";
+ link.rel="noopener";
+ link.textContent="Ouvrir / télécharger la vidéo";
+ link.style.display="block";
+ link.style.marginTop="12px";
+ link.style.color="#ffc928";
+
+ $("preview").append(video,link);
+}
+
+function extractUrl(result){
+ return result?.currentSrc||
+  result?.src||
+  result?.getAttribute?.("src")||
+  (typeof result==="string"?result:"");
+}
+
+/* MODE TEST SANS CREDITS */
+
+async function testVideo(){
+ if(!currentUser){
+  throw new Error("Connecte-toi d'abord.");
+ }
+
+ const prompt=$("prompt").value.trim();
+
+ if(prompt.length<8){
+  throw new Error("Écris une description d'au moins 8 caractères.");
+ }
+
+ const puter=await loadPuter();
+
+ setStatus("generationStatus","Test du moteur Puter : récupération d'une vidéo de démonstration...");
+
+ const result=await puter.ai.txt2vid(prompt,true);
+ const videoUrl=extractUrl(result);
+
+ if(!videoUrl){
+  throw new Error("Le test Puter n'a pas retourné de vidéo.");
+ }
+
+ showPreview(videoUrl);
+
+ setStatus(
+  "generationStatus",
+  "Test réussi ! Le lecteur vidéo fonctionne. C'est une vidéo de démonstration : aucune génération réelle n'a été lancée.",
+  "good"
+ );
+}
+
+/* GENERATION REELLE WAN 2.7 */
+
+async function generateVideo(prompt){
+ const puter=await loadPuter();
+
+ const start=Date.now();
+
+ const ticker=setInterval(()=>{
+  const s=Math.round((Date.now()-start)/1000);
+  setStatus(
+   "generationStatus",
+   "Wan 2.7 travaille sur ta vidéo... "+Math.floor(s/60)+" min "+(s%60)+" s\nNe ferme pas cette page et garde l'écran allumé."
+  );
+ },1000);
+
+ let timeoutId=null;
+
+ try{
+  const result=await Promise.race([
+   puter.ai.txt2vid(prompt,{model:MODEL}),
+   new Promise((_,reject)=>{
+    timeoutId=setTimeout(()=>{
+     reject(new Error("Délai dépassé (10 minutes). Réessaie avec une description plus courte."));
+    },TIMEOUT_MS);
+   })
+  ]);
+
+  const videoUrl=extractUrl(result);
+
+  if(!videoUrl){
+   throw new Error("Puter a répondu, mais aucune adresse vidéo exploitable n'a été retournée.");
+  }
+
+  return videoUrl;
+
+ }finally{
+  clearInterval(ticker);
+  clearTimeout(timeoutId);
+ }
+}
+
+/* BOUTON TEST */
+
+$("testBtn").addEventListener("click",async()=>{
+ if(generating) return;
+
+ setGenerating(true);
+ $("preview").innerHTML="";
+
+ try{
+  await testVideo();
+ }catch(e){
+  console.error(e);
+  setStatus("generationStatus","Erreur de test : "+errorText(e),"bad");
+ }finally{
+  setGenerating(false);
+ }
+});
+
+/* BOUTON GENERER */
+
+$("generateBtn").addEventListener("click",async()=>{
+ if(!currentUser){
+  return setStatus("generationStatus","Connecte-toi d'abord.","bad");
+ }
+
+ if(generating) return;
+
+ const prompt=$("prompt").value.trim();
+ const duration=$("duration").value;
+ const ratio=$("ratio").value;
+
+ if(prompt.length<8){
+  return setStatus("generationStatus","Écris une description plus précise.","bad");
+ }
+
+ setGenerating(true);
+ $("preview").innerHTML="";
+
+ let job=null;
+
+ try{
+  setStatus("generationStatus","Enregistrement de ta demande...");
+
+  job=await insertJob({
+   prompt,
+   duration:Number(duration),
+   ratio,
+   status:"running"
+  });
+
+  const videoUrl=await generateVideo(prompt);
+
+  await updateJob(job.id,{
+   status:"completed",
+   video_url:videoUrl,
+   error_message:null
+  });
+
+  showPreview(videoUrl);
+
+  setStatus("generationStatus","Bravo ! Ta vidéo a été générée et enregistrée dans ton historique.","good");
+
+  await loadHistory();
+
+ }catch(e){
+  console.error("SUNU VIDEO AI:",e);
+
+  const detail=errorText(e);
+
+  if(job){
+   try{
+    await updateJob(job.id,{status:"failed",error_message:detail});
+   }catch(updateError){
+    console.error("Erreur de mise à jour:",updateError);
+   }
+  }
+
+  setStatus("generationStatus","Échec : "+detail,"bad");
+
+  if(currentUser){
+   await loadHistory();
+  }
+ }finally{
+  setGenerating(false);
+ }
+});
+
+/* ACTUALISER HISTORIQUE */
+
+$("refreshBtn").addEventListener("click",async()=>{
+ try{
+  await loadHistory();
+ }catch(e){
+  setStatus("generationStatus","Erreur d'actualisation : "+e.message,"bad");
+ }
+});
+
+/* INITIALISATION */
+
+async function initialize(){
+ if(!window.supabase?.createClient){
+  setStatus("authStatus","Supabase ne se charge pas. Vérifie ta connexion Internet.","bad");
+  return;
+ }
+
+ sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+
+ sb.auth.onAuthStateChange((_event,session)=>{
+  currentUser=session?.user||null;
+  setButtons();
+
+  if(currentUser){
+   setStatus("authStatus","Connecté : "+currentUser.email,"good");
+   setTimeout(()=>{loadHistory().catch(console.error);},0);
+  }else{
+   $("history").textContent="Connecte-toi pour voir tes créations.";
+   if(!generating){
+    setStatus("generationStatus","Connecte-toi pour commencer.");
+   }
+  }
+ });
+
+ try{
+  await showSession();
+ }catch(e){
+  setStatus("authStatus","Erreur Supabase : "+e.message,"bad");
+ }
+}
+
+initialize();
+
+})();
+</script>
+</body>
+</html>
